@@ -1,2 +1,19 @@
 ###
-GET http://127.0.0.1:3030/questions?id
+GET http://127.0.0.1:3030/questions/1?start=0&end=5
+
+###
+POST http://127.0.0.1:3030/questions
+Content-Type: application/json
+
+{
+    "id": "QI0002",
+    "title": "What is the capital of France?",
+    "content": "I am confused about the capital of France. Can someone help me?",
+    "tags": ["general"]
+}
+
+###
+POST http://127.0.0.1:3030/comments
+Content-Type: application/x-www-form-urlencoded
+
+questionId=QI0002&content=Paris is the capital of France.
