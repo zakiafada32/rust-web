@@ -119,11 +119,9 @@ fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination, Err
 }
 
 async fn get_questions(
-    id: String,
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("pathParam: {}", id);
     if !params.is_empty() {
         let mut pagination = extract_pagination(params)?;
         let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
@@ -208,7 +206,6 @@ async fn main() {
 
     let get_questions = warp::get()
         .and(warp::path("questions"))
-        .and(warp::path::param::<String>())
         .and(warp::path::end())
         .and(warp::query())
         .and(store_filter.clone())
