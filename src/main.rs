@@ -11,7 +11,7 @@ mod types;
 #[tokio::main]
 async fn main() {
     let log_filter = std::env::var("RUST_LOG")
-        .unwrap_or_else(|_| "handle_errors=warn,playground=warn,warp=warn".to_owned());
+        .unwrap_or_else(|_| "handle_errors=info,playground=info,warp=info".to_owned());
 
     let store =
         store::Store::new("postgresql://postgreuser:password@localhost:5432/mydatabase").await;

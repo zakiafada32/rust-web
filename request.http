@@ -6,14 +6,14 @@ POST http://127.0.0.1:3030/questions
 Content-Type: application/json
 
 {
-    "id": "QI0002",
     "title": "What is the capital of France?",
     "content": "I am confused about the capital of France. Can someone help me?",
     "tags": ["general"]
 }
 
 ###
-POST http://127.0.0.1:3030/comments
+POST http://127.0.0.1:3030/answers
 Content-Type: application/x-www-form-urlencoded
 
-questionId=QI0002&content=Paris is the capital of France.
+question_id=1
+&content=Paris is the capital of France

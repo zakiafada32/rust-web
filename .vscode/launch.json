@@ -7,11 +7,11 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'practical-rust-book'",
+            "name": "Debug executable 'playground'",
             "cargo": {
-                "args": ["build", "--bin=practical-rust-book", "--package=practical-rust-book"],
+                "args": ["build", "--bin=playground", "--package=playground"],
                 "filter": {
-                    "name": "practical-rust-book",
+                    "name": "playground",
                     "kind": "bin"
                 }
             },
@@ -21,11 +21,11 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'practical-rust-book'",
+            "name": "Debug unit tests in executable 'playground'",
             "cargo": {
-                "args": ["test", "--no-run", "--bin=practical-rust-book", "--package=practical-rust-book"],
+                "args": ["test", "--no-run", "--bin=playground", "--package=playground"],
                 "filter": {
-                    "name": "practical-rust-book",
+                    "name": "playground",
                     "kind": "bin"
                 }
             },
