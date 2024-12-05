@@ -1,2 +1,4 @@
 /target
 /handle-errors/target
+api-key.txt
+.env

@@ -1,25 +1,30 @@
 #![warn(clippy::all)]
 
+use dotenv::dotenv;
 use handle_errors::return_error;
 use tracing_subscriber::fmt::format::FmtSpan;
 use warp::{http::Method, Filter};
 
+mod profanity;
 mod routes;
 mod store;
 mod types;
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     let log_filter = std::env::var("RUST_LOG")
         .unwrap_or_else(|_| "handle_errors=info,playground=info,warp=info".to_owned());
 
-    let store =
-        store::Store::new("postgresql://postgreuser:password@localhost:5432/mydatabase").await;
+    let database_url = dotenv::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+    let store = store::Store::new(&database_url).await;
 
     sqlx::migrate!()
         .run(&store.clone().connection)
         .await
-        .expect("Cannot migrate DB");
+        .expect("Cannot run migrations");
 
     let store_filter = warp::any().map(move || store.clone());
 

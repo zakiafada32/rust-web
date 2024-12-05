@@ -30,7 +30,7 @@ impl Store {
     }
 
     pub async fn get_questions(
-        &self,
+        self,
         limit: Option<u32>,
         offset: Option<u32>,
     ) -> Result<Vec<Question>, Error> {
@@ -54,11 +54,11 @@ impl Store {
         }
     }
 
-    pub async fn add_question(&self, new_question: NewQuestion) -> Result<Question, Error> {
+    pub async fn add_question(self, new_question: NewQuestion) -> Result<Question, Error> {
         match sqlx::query(
-            "INSERT INTO questions (title, content, tags)
-                 VALUES ($1, $2, $3)
-                 RETURNING id, title, content, tags",
+            "INSERT INTO questions (title, content, tags) 
+                    VALUES ($1, $2, $3) 
+                    RETURNING id, title, content, tags",
         )
         .bind(new_question.title)
         .bind(new_question.content)
@@ -80,20 +80,16 @@ impl Store {
         }
     }
 
-    pub async fn update_question(
-        &self,
-        question: Question,
-        question_id: i32,
-    ) -> Result<Question, Error> {
+    pub async fn update_question(self, question: Question, id: i32) -> Result<Question, Error> {
         match sqlx::query(
             "UPDATE questions SET title = $1, content = $2, tags = $3
-        WHERE id = $4
-        RETURNING id, title, content, tags",
+                    WHERE id = $4
+                    RETURNING id, title, content, tags",
         )
         .bind(question.title)
         .bind(question.content)
         .bind(question.tags)
-        .bind(question_id)
+        .bind(id)
         .map(|row: PgRow| Question {
             id: QuestionId(row.get("id")),
             title: row.get("title"),
@@ -111,9 +107,9 @@ impl Store {
         }
     }
 
-    pub async fn delete_question(&self, question_id: i32) -> Result<bool, Error> {
+    pub async fn delete_question(self, id: i32) -> Result<bool, Error> {
         match sqlx::query("DELETE FROM questions WHERE id = $1")
-            .bind(question_id)
+            .bind(id)
             .execute(&self.connection)
             .await
         {
@@ -128,8 +124,8 @@ impl Store {
     pub async fn add_answer(&self, new_answer: NewAnswer) -> Result<Answer, Error> {
         match sqlx::query(
             "INSERT INTO answers (content, question_id) 
-                VALUES ($1, $2)
-                RETURNING id, content, question_id",
+                    VALUES ($1, $2)
+                    RETURNING id, content, question_id",
         )
         .bind(new_answer.content)
         .bind(new_answer.question_id.0)

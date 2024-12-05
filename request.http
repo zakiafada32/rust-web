@@ -6,8 +6,8 @@ POST http://127.0.0.1:3030/questions
 Content-Type: application/json
 
 {
-    "title": "What is the capital of France?",
-    "content": "I am confused about the capital of France. Can someone help me?",
+    "title": "Capital of Indonesia",
+    "content": "What is the capital of Indonesia?",
     "tags": ["general"]
 }
 
