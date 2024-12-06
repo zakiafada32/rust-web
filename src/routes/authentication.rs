@@ -1,7 +1,8 @@
 use argon2::{self, Config};
 use chrono::prelude::*;
 use rand::Rng;
-use warp::{http::StatusCode, Filter};
+use std::env;
+use warp::{Filter, http::StatusCode};
 
 use crate::store::Store;
 use crate::types::account::{Account, AccountId, Session};
@@ -42,8 +43,7 @@ pub async fn login(store: Store, login: Account) -> Result<impl warp::Reply, war
 }
 
 pub fn verify_token(token: String) -> Result<Session, handle_errors::Error> {
-    let key = dotenv::var("HASH_KEY").expect("HASH_KEY must be set");
-
+    let key = env::var("PASETO_KEY").unwrap();
     let token = paseto::tokens::validate_local_token(
         &token,
         None,
@@ -56,7 +56,7 @@ pub fn verify_token(token: String) -> Result<Session, handle_errors::Error> {
 }
 
 fn hash_password(password: &[u8]) -> String {
-    let salt = rand::thread_rng().gen::<[u8; 32]>();
+    let salt = rand::thread_rng().r#gen::<[u8; 32]>();
     let config = Config::default();
     argon2::hash_encoded(password, &salt, &config).unwrap()
 }
@@ -66,9 +66,10 @@ fn verify_password(hash: &str, password: &[u8]) -> Result<bool, argon2::Error> {
 }
 
 fn issue_token(account_id: AccountId) -> String {
+    let key = env::var("PASETO_KEY").unwrap();
+
     let current_date_time = Utc::now();
     let dt = current_date_time + chrono::Duration::days(1);
-    let key = dotenv::var("HASH_KEY").expect("HASH_KEY must be set");
 
     paseto::tokens::PasetoBuilder::new()
         .set_encryption_key(&Vec::from(key.as_bytes()))

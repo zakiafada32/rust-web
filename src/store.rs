@@ -17,19 +17,16 @@ pub struct Store {
 }
 
 impl Store {
-    pub async fn new(db_url: &str) -> Self {
-        let db_pool = match PgPoolOptions::new()
+    pub async fn new(db_url: &str) -> Result<Self, sqlx::Error> {
+        tracing::warn!("{}", db_url);
+        let db_pool = PgPoolOptions::new()
             .max_connections(5)
             .connect(db_url)
-            .await
-        {
-            Ok(pool) => pool,
-            Err(e) => panic!("Couldn't establish DB connection: {}", e),
-        };
+            .await?;
 
-        Store {
+        Ok(Store {
             connection: db_pool,
-        }
+        })
     }
 
     pub async fn get_questions(
@@ -110,8 +107,8 @@ impl Store {
     ) -> Result<Question, Error> {
         match sqlx::query(
             "UPDATE questions SET title = $1, content = $2, tags = $3
-                    WHERE id = $4 AND account_id = $5
-                    RETURNING id, title, content, tags",
+        WHERE id = $4 AND account_id = $5
+        RETURNING id, title, content, tags",
         )
         .bind(question.title)
         .bind(question.content)
@@ -156,7 +153,7 @@ impl Store {
         account_id: AccountId,
     ) -> Result<Answer, Error> {
         match sqlx::query(
-            "INSERT INTO answers (content, question_id, account_id) VALUES ($1, $2, $3) RETURNING id, content, question_id",
+            "INSERT INTO answers (content, corresponding_question, account_id) VALUES ($1, $2, $3)",
         )
         .bind(new_answer.content)
         .bind(new_answer.question_id.0)

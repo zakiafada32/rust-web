@@ -4,12 +4,17 @@ GET http://127.0.0.1:3030/questions
 ###
 POST http://127.0.0.1:3030/questions
 Content-Type: application/json
+Authorization: v2.local.YQhybQUjAysfwEfOw2KXQQ9fKvGcAJkimpX1YNLzcwEsXdKvQoLUvB3iSi1t2hB14rC6zNwsxXF3qNjhISKCtMWM1fw2NiKVV-TBCEqIqjtsBx_QkAFFMhBIfhW1ixCw4Hp5EX1A4DPmK2RNvOAVeKVKrAu3XdF8CyrTujIXHIhPT_sbhBY
 
 {
-    "title": "How many countries are there in the world?",
-    "content": "I want to know how many countries are there in the world.",
-    "tags": ["general"]
+    "content": "I want to know how many countries are there in the world."
 }
+
+###
+DELETE http://127.0.0.1:3030/questions/4
+Content-Type: application/json
+Authorization: v2.local.YQhybQUjAysfwEfOw2KXQQ9fKvGcAJkimpX1YNLzcwEsXdKvQoLUvB3iSi1t2hB14rC6zNwsxXF3qNjhISKCtMWM1fw2NiKVV-TBCEqIqjtsBx_QkAFFMhBIfhW1ixCw4Hp5EX1A4DPmK2RNvOAVeKVKrAu3XdF8CyrTujIXHIhPT_sbhBY
+
 
 ###
 POST http://127.0.0.1:3030/answers
@@ -17,3 +22,21 @@ Content-Type: application/x-www-form-urlencoded
 
 question_id=1
 &content=Paris is the capital of France
+
+###
+POST http://127.0.0.1:3030/registration
+Content-Type: application/json
+
+{
+    "email": "zai@mail.com",
+    "password": "1234567"
+}
+
+###
+POST http://127.0.1:3030/login
+Content-Type: application/json
+
+{
+    "email": "zai@mail.com",
+    "password": "1234567"
+}
