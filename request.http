@@ -6,8 +6,8 @@ POST http://127.0.0.1:3030/questions
 Content-Type: application/json
 
 {
-    "title": "Capital of Indonesia",
-    "content": "What is the capital of Indonesia?",
+    "title": "How many countries are there in the world?",
+    "content": "I want to know how many countries are there in the world.",
     "tags": ["general"]
 }
 
