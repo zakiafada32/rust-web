@@ -2,7 +2,7 @@ use argon2::{self, Config};
 use chrono::prelude::*;
 use rand::Rng;
 use std::env;
-use warp::{Filter, http::StatusCode};
+use warp::{http::StatusCode, Filter};
 
 use crate::store::Store;
 use crate::types::account::{Account, AccountId, Session};
@@ -38,8 +38,18 @@ pub async fn login(store: Store, login: Account) -> Result<impl warp::Reply, war
                 handle_errors::Error::ArgonLibraryError(e),
             )),
         },
-        Err(e) => Err(warp::reject::custom(e)),
+        Err(_) => Err(warp::reject::custom(handle_errors::Error::WrongPassword)),
     }
+}
+
+fn hash_password(password: &[u8]) -> String {
+    let salt = rand::thread_rng().gen::<[u8; 32]>();
+    let config = Config::default();
+    argon2::hash_encoded(password, &salt, &config).unwrap()
+}
+
+fn verify_password(hash: &str, password: &[u8]) -> Result<bool, argon2::Error> {
+    argon2::verify_encoded(hash, password)
 }
 
 pub fn verify_token(token: String) -> Result<Session, handle_errors::Error> {
@@ -51,18 +61,7 @@ pub fn verify_token(token: String) -> Result<Session, handle_errors::Error> {
         &paseto::tokens::TimeBackend::Chrono,
     )
     .map_err(|_| handle_errors::Error::CannotDecryptToken)?;
-
     serde_json::from_value::<Session>(token).map_err(|_| handle_errors::Error::CannotDecryptToken)
-}
-
-fn hash_password(password: &[u8]) -> String {
-    let salt = rand::thread_rng().r#gen::<[u8; 32]>();
-    let config = Config::default();
-    argon2::hash_encoded(password, &salt, &config).unwrap()
-}
-
-fn verify_password(hash: &str, password: &[u8]) -> Result<bool, argon2::Error> {
-    argon2::verify_encoded(hash, password)
 }
 
 fn issue_token(account_id: AccountId) -> String {
@@ -100,4 +99,23 @@ pub fn auth() -> impl Filter<Extract = (Session,), Error = warp::Rejection> + Cl
             Ok(token)
         },
     )
+}
+
+#[cfg(test)]
+mod authentication_tests {
+    use super::{auth, env, issue_token, AccountId};
+
+    #[tokio::test]
+    async fn post_questions_auth() {
+        env::set_var("PASETO_KEY", "RANDOM WORDS WINTER MACINTOSH PC");
+        let token = issue_token(AccountId(3));
+
+        let filter = auth();
+
+        let res = warp::test::request()
+            .header("Authorization", token)
+            .filter(&filter);
+
+        assert_eq!(res.await.unwrap().account_id, AccountId(3));
+    }
 }

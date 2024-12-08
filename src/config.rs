@@ -2,7 +2,7 @@ use clap::Parser;
 use std::env;
 
 /// Q&A web service API
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, PartialEq)]
 #[clap(author, version, about, long_about = None)]
 pub struct Config {
     /// Which errors we want to log (info, warn or error)
@@ -30,16 +30,10 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Result<Config, handle_errors::Error> {
-        dotenv::dotenv().ok();
         let config = Config::parse();
 
-        if env::var("BAD_WORDS_API_KEY").is_err() {
-            panic!("BadWords API key not set");
-        }
-
-        if env::var("PASETO_KEY").is_err() {
-            panic!("PASETO_KEY not set");
-        }
+        env::var("BAD_WORDS_API_KEY").expect("BAD_WORDS_API_KEY must be set");
+        env::var("PASETO_KEY").expect("PASETO_KEY must be set");
 
         let port = std::env::var("PORT")
             .ok()
@@ -47,11 +41,11 @@ impl Config {
             .unwrap_or(Ok(config.port))
             .map_err(handle_errors::Error::ParseError)?;
 
-        let db_user = env::var("POSTGRES_USER").unwrap_or(config.db_user.to_owned());
+        let db_user = env::var("POSTGRES_USER").unwrap_or_else(|_| config.db_user.to_owned());
         let db_password = env::var("POSTGRES_PASSWORD").unwrap();
-        let db_host = env::var("POSTGRES_HOST").unwrap_or(config.db_host.to_owned());
-        let db_port = env::var("POSTGRES_PORT").unwrap_or(config.db_port.to_string());
-        let db_name = env::var("POSTGRES_DB").unwrap_or(config.db_name.to_owned());
+        let db_host = env::var("POSTGRES_HOST").unwrap_or_else(|_| config.db_host.to_owned());
+        let db_port = env::var("POSTGRES_PORT").unwrap_or_else(|_| config.db_port.to_string());
+        let db_name = env::var("POSTGRES_DB").unwrap_or_else(|_| config.db_name.to_owned());
 
         Ok(Config {
             log_level: config.log_level,
@@ -64,5 +58,44 @@ impl Config {
                 .map_err(handle_errors::Error::ParseError)?,
             db_name,
         })
+    }
+}
+
+#[cfg(test)]
+mod config_tests {
+    use super::*;
+
+    fn set_env() {
+        env::set_var("BAD_WORDS_API_KEY", "API_KEY");
+        env::set_var("PASETO_KEY", "RANDOM WORDS WINTER MACINTOSH PC");
+        env::set_var("POSTGRES_USER", "user");
+        env::set_var("POSTGRES_PASSWORD", "pass");
+        env::set_var("POSTGRES_HOST", "localhost");
+        env::set_var("POSTGRES_PORT", "5432");
+        env::set_var("POSTGRES_DB", "mydatabase");
+    }
+
+    #[test]
+    fn unset_and_set_api_key() {
+        // ENV VARIABLES ARE NOT SET
+        let result = std::panic::catch_unwind(Config::new);
+        assert!(result.is_err());
+
+        // NOW WE SET THEM
+        set_env();
+
+        let expected = Config {
+            log_level: "info".to_string(),
+            port: 3030,
+            db_user: "user".to_string(),
+            db_password: "pass".to_string(),
+            db_host: "localhost".to_string(),
+            db_port: 5432,
+            db_name: "mydatabase".to_string(),
+        };
+
+        let config = Config::new().unwrap();
+
+        assert_eq!(config, expected);
     }
 }

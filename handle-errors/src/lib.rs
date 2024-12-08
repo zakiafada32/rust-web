@@ -1,12 +1,12 @@
 use argon2::Error as ArgonError;
 use reqwest::Error as ReqwestError;
 use reqwest_middleware::Error as MiddlewareReqwestError;
-use tracing::{Level, event, instrument};
+use tracing::{event, instrument, Level};
 use warp::{
-    Rejection, Reply,
     filters::{body::BodyDeserializeError, cors::CorsForbidden},
     http::StatusCode,
     reject::Reject,
+    Rejection, Reply,
 };
 
 #[derive(Debug)]
@@ -23,6 +23,7 @@ pub enum Error {
     MiddlewareReqwestAPIError(MiddlewareReqwestError),
     ClientError(APILayerError),
     ServerError(APILayerError),
+    MissingEnv(MissingEnvVar),
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,15 @@ pub struct APILayerError {
 impl std::fmt::Display for APILayerError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "Status: {}, Message: {}", self.status, self.message)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct MissingEnvVar(pub String);
+
+impl std::fmt::Display for MissingEnvVar {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Missing environment variable: {}", self.0)
     }
 }
 
@@ -52,12 +62,14 @@ impl std::fmt::Display for Error {
             Error::MiddlewareReqwestAPIError(err) => write!(f, "External API error: {}", err),
             Error::ClientError(err) => write!(f, "External Client error: {}", err),
             Error::ServerError(err) => write!(f, "External Server error: {}", err),
+            Error::MissingEnv(var) => write!(f, "Missing environment variable: {}", var),
         }
     }
 }
 
 impl Reject for Error {}
 impl Reject for APILayerError {}
+impl Reject for MissingEnvVar {}
 
 const DUPLICATE_KEY: u32 = 23505;
 
