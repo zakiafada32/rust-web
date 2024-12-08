@@ -28,7 +28,7 @@ POST http://127.0.0.1:3030/registration
 Content-Type: application/json
 
 {
-    "email": "zai@mail.com",
+    "email": "test@mail.com",
     "password": "1234567"
 }
 
